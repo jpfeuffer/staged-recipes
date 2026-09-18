@@ -1,0 +1,73 @@
+schema_version: 1
+
+# NOTE: This is not part of the bgen-limix conda-forge submission. nanobind's
+# split-mode backend module (needed by recipe/recipe.yaml's ${{ py_name }}
+# output) is not yet packaged on conda-forge. This recipe should be submitted
+# on its own to conda-forge/staged-recipes before the bgen-limix recipe can
+# depend on `nanobind-backend` there. Source: https://github.com/wjakob/nanobind
+# (nanobind-backend/ subdirectory), matching the upstream PyPI package
+# https://pypi.org/project/nanobind-backend/.
+
+context:
+  version: "1.0.0"
+  # nanobind tag that ships nanobind-backend 1.0.0 (see nanobind-backend/pyproject.toml
+  # in that tag; keep this in sync whenever nanobind-backend's own version bumps).
+  nanobind_tag: "3.0.1"
+  robin_map_version: "1.4.0"
+
+package:
+  name: nanobind-backend
+  version: ${{ version }}
+
+source:
+  - url: https://github.com/wjakob/nanobind/archive/refs/tags/v${{ nanobind_tag }}.tar.gz
+    sha256: 34ded7cf2292f08a92c45490a095e76334a57751bbae03a8c83241803bf19623
+  - url: https://github.com/Tessil/robin-map/archive/refs/tags/v${{ robin_map_version }}.tar.gz
+    sha256: 7930dbf9634acfc02686d87f615c0f4f33135948130b8922331c16d90a03250c
+    target_directory: ext/robin_map
+
+build:
+  number: 0
+  skip:
+    - win and python_impl == "pypy"
+    - python_impl == "pypy"
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - cmake
+    - ninja
+  host:
+    - python
+    - pip
+    - scikit-build-core
+  run:
+    - python
+
+tests:
+  - script:
+      - python -c "import nanobind_backend._nb_backend_v1"
+  - requirements:
+      run:
+        - pip
+    script:
+      - pip check
+
+about:
+  homepage: https://github.com/wjakob/nanobind
+  repository: https://github.com/wjakob/nanobind
+  documentation: https://nanobind.readthedocs.io/en/latest/split_mode.html
+  summary: Compiled nanobind backend for extensions built in split mode
+  description: |
+    This package contains the backend part of the nanobind C++ binding
+    library. It serves extension modules built using nanobind's split mode,
+    in which the extension delegates to an externally hosted backend instead
+    of shipping its own. End users receive this package as a transitive
+    dependency of such an extension and do not interact with it directly.
+  license: BSD-3-Clause
+  license_file:
+    - LICENSE
+
+extra:
+  recipe-maintainers:
+    - jpfeuffer
